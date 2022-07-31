@@ -4,7 +4,7 @@ import Browser
 import Debug exposing (todo)
 import Html exposing (Attribute, Html, button, div, input, label, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (for, id, pattern, style, type_, value)
-import Html.Events exposing (onClick, onSubmit)
+import Html.Events exposing (onClick, onInput, onSubmit)
 
 
 main : Program () Model Msg
@@ -45,6 +45,8 @@ type Msg
     | Decrement
     | UpdateBasePower String
     | AddEnemy
+    | UpdateLife Int String
+    | UpdateBlockers Int String
 
 
 type CanKill
@@ -73,6 +75,54 @@ update msg model =
         AddEnemy ->
             { model | enemies = defaultEnemy :: model.enemies }
 
+        UpdateLife i l ->
+            let
+                newLife =
+                    String.toInt l
+
+                newEnemies =
+                    \index nl ->
+                        model.enemies
+                            |> List.indexedMap
+                                (\j e ->
+                                    if index /= j then
+                                        e
+
+                                    else
+                                        { e | life = nl }
+                                )
+            in
+            case newLife of
+                Just nl ->
+                    { model | enemies = newEnemies i nl }
+
+                Nothing ->
+                    model
+
+        UpdateBlockers i b ->
+            let
+                newBlockers =
+                    String.toInt b
+
+                newEnemies =
+                    \index nb ->
+                        model.enemies
+                            |> List.indexedMap
+                                (\j e ->
+                                    if index /= j then
+                                        e
+
+                                    else
+                                        { e | blockers = nb }
+                                )
+            in
+            case newBlockers of
+                Just nb ->
+                    { model | enemies = newEnemies i nb }
+
+                Nothing ->
+                    model
+
 
 view : Model -> Html Msg
 view model =
@@ -87,17 +137,31 @@ view model =
 enemies : { a | enemies : List Enemy } -> Html Msg
 enemies model =
     model.enemies
-        |> List.map enemy
+        |> List.indexedMap enemy
         |> div []
 
 
-enemy : Enemy -> Html Msg
-enemy e =
+enemy : Int -> Enemy -> Html Msg
+enemy n e =
+    let
+        i =
+            String.fromInt n
+    in
     div []
-        [ label [ for "life-id" ] [ text "life" ]
-        , input [ id "life-id", value (String.fromInt e.life) ] []
-        , label [ for "blocker-id" ] [ text "blockers" ]
-        , input [ id "blocker-id", value (String.fromInt e.blockers) ] []
+        [ label [ for ("life-" ++ i) ] [ text "life" ]
+        , input
+            [ id ("life-" ++ i)
+            , value (String.fromInt e.life)
+            , onInput (UpdateLife n)
+            ]
+            []
+        , label [ for ("blocker-" ++ i) ] [ text "blockers" ]
+        , input
+            [ id ("blocker-" ++ i)
+            , value (String.fromInt e.blockers)
+            , onInput (UpdateBlockers n)
+            ]
+            []
         ]
 
 
@@ -127,6 +191,7 @@ chart model =
                     , th [] [ text "Bonus +1/+1 per creature" ]
                     , th [] [ text "Total bonus +x/+x" ]
                     , th [] [ text "Total unblocked damage" ]
+                    , th [] [ text "Can kill players" ]
                     ]
                 ]
             , tbody []
@@ -166,6 +231,18 @@ row highlight a model =
         , td [] [ text <| String.fromInt a ]
         , td [] [ text <| String.fromInt <| totalBonus a ]
         , td [] [ text <| String.fromInt <| totalPower a model.basePower ]
+        , td []
+            [ text <|
+                case canKill model.enemies model of
+                    SomeEnemies ->
+                        "Some"
+
+                    Everyone ->
+                        "All"
+
+                    NoEnemies ->
+                        "None"
+            ]
         ]
 
 
@@ -192,8 +269,9 @@ totalBonus c =
 canKill :
     List Enemy
     ->
-        { attackingCount : Int
-        , basePower : Int
+        { r
+            | attackingCount : Int
+            , basePower : Int
         }
     -> CanKill
 canKill es model =
