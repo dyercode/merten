@@ -1,7 +1,7 @@
 module Calculations exposing (calcSuite, justMerten, killSuite)
 
 import Expect
-import Fuzz exposing (bool, int, intRange)
+import Fuzz exposing (intRange)
 import Main exposing (CanKill(..), bonus, canKill, totalBonus)
 import Random exposing (maxInt)
 import Test exposing (..)

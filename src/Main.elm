@@ -1,10 +1,9 @@
 module Main exposing (CanKill(..), bonus, canKill, main, totalBonus)
 
 import Browser
-import Debug exposing (todo)
 import Html exposing (Attribute, Html, button, div, input, label, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (for, id, pattern, style, type_, value)
-import Html.Events exposing (onClick, onInput, onSubmit)
+import Html.Events exposing (onClick, onInput)
 
 
 main : Program () Model Msg
