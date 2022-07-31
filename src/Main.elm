@@ -1,4 +1,4 @@
-module Main exposing (bonus, main, totalBonus)
+module Main exposing (CanKill(..), bonus, canKill, main, totalBonus)
 
 import Browser
 import Debug exposing (todo)
@@ -45,6 +45,12 @@ type Msg
     | Decrement
     | UpdateBasePower String
     | AddEnemy
+
+
+type CanKill
+    = Everyone
+    | SomeEnemies
+    | NoEnemies
 
 
 update : Msg -> Model -> Model
@@ -181,3 +187,58 @@ bonus c =
 totalBonus : Int -> Int
 totalBonus c =
     c * c
+
+
+canKill :
+    List Enemy
+    ->
+        { attackingCount : Int
+        , basePower : Int
+        }
+    -> CanKill
+canKill es model =
+    if
+        let
+            attackBonus =
+                bonus model.attackingCount
+
+            mertenCounts =
+                if es |> List.any (.life >> (==) 1) then
+                    1
+
+                else
+                    0
+        in
+        (es
+            |> List.all
+                (\e -> e.life <= max attackBonus mertenCounts)
+        )
+            && (((es
+                    |> List.map .blockers
+                    |> List.sum
+                 )
+                    + List.length es
+                )
+                    <= (model.attackingCount + mertenCounts)
+               )
+    then
+        Everyone
+
+    else if
+        let
+            lifes =
+                es |> List.map .life
+        in
+        ((List.sum lifes
+            > totalPower model.attackingCount model.basePower
+         )
+            || (List.length es > (model.attackingCount + 1))
+        )
+            && (lifes
+                    |> List.any (\l -> l <= bonus model.attackingCount)
+               )
+    then
+        SomeEnemies
+
+    else
+        NoEnemies
