@@ -76,52 +76,42 @@ update msg model =
             { model | enemies = defaultEnemy :: model.enemies }
 
         UpdateLife i l ->
-            let
-                newLife =
-                    String.toInt l
-
-                newEnemies =
-                    \index nl ->
-                        model.enemies
-                            |> List.indexedMap
-                                (\j e ->
-                                    if index /= j then
-                                        e
-
-                                    else
-                                        { e | life = nl }
-                                )
-            in
-            case newLife of
-                Just nl ->
-                    { model | enemies = newEnemies i nl }
+            case String.toInt l of
+                Just newLife ->
+                    { model | enemies = updateFieldAtIndex i newLife updateLife model.enemies }
 
                 Nothing ->
                     model
 
         UpdateBlockers i b ->
-            let
-                newBlockers =
-                    String.toInt b
-
-                newEnemies =
-                    \index nb ->
-                        model.enemies
-                            |> List.indexedMap
-                                (\j e ->
-                                    if index /= j then
-                                        e
-
-                                    else
-                                        { e | blockers = nb }
-                                )
-            in
-            case newBlockers of
-                Just nb ->
-                    { model | enemies = newEnemies i nb }
+            case String.toInt b of
+                Just newBlockers ->
+                    { model | enemies = updateFieldAtIndex i newBlockers updateBlockers model.enemies }
 
                 Nothing ->
                     model
+
+
+updateLife : Enemy -> Int -> Enemy
+updateLife e l =
+    { e | life = l }
+
+
+updateBlockers : Enemy -> Int -> Enemy
+updateBlockers e b =
+    { e | blockers = b }
+
+
+updateFieldAtIndex : Int -> b -> (a -> b -> a) -> List a -> List a
+updateFieldAtIndex i val updateField =
+    List.indexedMap
+        (\j e ->
+            if i /= j then
+                e
+
+            else
+                updateField e val
+        )
 
 
 view : Model -> Html Msg
