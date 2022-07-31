@@ -4,7 +4,7 @@ import Browser
 import Debug exposing (todo)
 import Html exposing (Attribute, Html, button, div, input, label, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (for, id, pattern, style, type_, value)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, onSubmit)
 
 
 main : Program () Model Msg
@@ -16,18 +16,35 @@ type alias Model =
     { attackingCount : Int
     , totalPower : Int
     , basePower : Int
+    , enemies : List Enemy
+    }
+
+
+type alias Enemy =
+    { blockers : Int
+    , life : Int
     }
 
 
 init : Model
 init =
-    { attackingCount = 0, totalPower = 0, basePower = 0 }
+    { attackingCount = 0
+    , totalPower = 0
+    , basePower = 0
+    , enemies = []
+    }
+
+
+defaultEnemy : Enemy
+defaultEnemy =
+    { blockers = 0, life = 40 }
 
 
 type Msg
     = Increment
     | Decrement
     | UpdateBasePower String
+    | AddEnemy
 
 
 update : Msg -> Model -> Model
@@ -47,6 +64,9 @@ update msg model =
                 Nothing ->
                     model
 
+        AddEnemy ->
+            { model | enemies = defaultEnemy :: model.enemies }
+
 
 view : Model -> Html Msg
 view model =
@@ -55,6 +75,23 @@ view model =
         , div [] [ text (String.fromInt model.attackingCount) ]
         , button [ onClick Increment ] [ text "+" ]
         , chart model
+        ]
+
+
+enemies : { a | enemies : List Enemy } -> Html Msg
+enemies model =
+    model.enemies
+        |> List.map enemy
+        |> div []
+
+
+enemy : Enemy -> Html Msg
+enemy e =
+    div []
+        [ label [ for "life-id" ] [ text "life" ]
+        , input [ id "life-id", value (String.fromInt e.life) ] []
+        , label [ for "blocker-id" ] [ text "blockers" ]
+        , input [ id "blocker-id", value (String.fromInt e.blockers) ] []
         ]
 
 
@@ -71,6 +108,12 @@ chart model =
             , Html.Events.onInput UpdateBasePower
             ]
             []
+        , button
+            [ id "add-enemy"
+            , onClick AddEnemy
+            ]
+            [ text "Add Enemy" ]
+        , enemies model
         , table []
             [ thead []
                 [ tr []
