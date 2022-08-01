@@ -1,4 +1,4 @@
-module Main exposing (CanKill(..), bonus, canKill, main, totalBonus)
+module Main exposing (CanKill(..), Enemy, bonus, canKill, main, totalBonus)
 
 import Browser
 import Html exposing (Attribute, Html, button, div, input, label, table, tbody, td, text, th, thead, tr)
