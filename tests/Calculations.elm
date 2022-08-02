@@ -52,7 +52,7 @@ killSuite =
                     , { life = 1, blockers = 0 }
                     ]
                     { justMerten | attackingCount = 1 }
-                    |> Expect.equal SomeEnemies
+                    |> Expect.equal (SomeEnemies 0)
         , fuzz2
             (nonEmptyList (boundedLifeFuzzer maxInt))
             positiveInt
@@ -83,7 +83,7 @@ killSuite =
                     |> Expect.equal NoEnemies
         , fuzz3 positiveInt
             (intRange 1 maxInt)
-            (intRange 1 (round <| sqrt <| toFloat maxInt))
+            squareSafeNonZeroInt
             ("can kill an enemy (without merten) if have more "
                 ++ "attackers than blockers and more remaining attack "
                 ++ "than their life"
@@ -104,7 +104,28 @@ killSuite =
                          else
                             NoEnemies
                         )
+        , fuzz2 (nonEmptyList (boundedEnemyFuzzer 1 maxInt 1 1))
+            squareSafeNonZeroInt
+            "canKill tells how many it can kill"
+          <|
+            \es aa ->
+                if List.length es < 2 then
+                    True |> Expect.equal True
+
+                else
+                    let
+                        attackers =
+                            min aa (List.length es - 2)
+                    in
+                    canKill es { justMerten | attackingCount = attackers }
+                        |> Expect.equal (SomeEnemies attackers)
         ]
+
+
+squareSafeNonZeroInt =
+    intRange 1 (round <| sqrt <| toFloat maxInt)
+
+
 
 
 positiveInt : Fuzzer Int

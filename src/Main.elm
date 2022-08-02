@@ -51,7 +51,7 @@ type Msg
 
 type CanKill
     = Everyone
-    | SomeEnemies
+    | SomeEnemies Int
     | NoEnemies
 
 
@@ -224,7 +224,7 @@ row highlight a model =
         , td []
             [ text <|
                 case canKill model.enemies model of
-                    SomeEnemies ->
+                    SomeEnemies _ ->
                         "Some"
 
                     Everyone ->
@@ -307,7 +307,7 @@ canKill es model =
                     |> List.any (\l -> l <= bonus model.attackingCount)
                )
     then
-        SomeEnemies
+        SomeEnemies 0
 
     else
         NoEnemies
