@@ -82,8 +82,8 @@ killSuite =
                     { justMerten | attackingCount = min aa (List.length l) }
                     |> Expect.equal NoEnemies
         , fuzz3 positiveInt
-            positiveInt
-            positiveInt
+            (intRange 1 maxInt)
+            (intRange 0 (round <| sqrt <| toFloat maxInt))
             ("can kill an enemy (without merten) if have more "
                 ++ "attackers than blockers and more remaining attack "
                 ++ "than their life"

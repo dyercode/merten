@@ -277,10 +277,11 @@ canKill es model =
                 else
                     0
         in
-        (es
-            |> List.all
-                (\e -> e.life <= max attackBonus mertenCounts)
-        )
+        canKillAllOutright es model.attackingCount
+            || (es
+                    |> List.all
+                        (\e -> e.life <= max attackBonus mertenCounts)
+               )
             && (((es
                     |> map .blockers
                     |> List.sum
@@ -297,15 +298,13 @@ canKill es model =
             lifes =
                 es |> map .life
         in
-        canKillAllOutright es model.attackingCount
-            || (((List.sum lifes
-                    > totalPower model.attackingCount model.basePower
-                 )
-                    || (List.length es > (model.attackingCount + 1))
-                )
-                    && (lifes
-                            |> List.any (\l -> l <= bonus model.attackingCount)
-                       )
+        ((List.sum lifes
+            > totalPower model.attackingCount model.basePower
+         )
+            || (List.length es > (model.attackingCount + 1))
+        )
+            && (lifes
+                    |> List.any (\l -> l <= bonus model.attackingCount)
                )
     then
         SomeEnemies
