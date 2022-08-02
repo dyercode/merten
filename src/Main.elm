@@ -4,6 +4,7 @@ import Browser
 import Html exposing (Attribute, Html, button, div, input, label, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (for, id, pattern, style, type_, value)
 import Html.Events exposing (onClick, onInput)
+import List exposing (foldl, map)
 
 
 main : Program () Model Msg
@@ -185,7 +186,7 @@ chart model =
                 ]
             , tbody []
                 ((List.range 0 5
-                    |> List.map
+                    |> map
                         (\a ->
                             let
                                 highlight =
@@ -281,7 +282,7 @@ canKill es model =
                 (\e -> e.life <= max attackBonus mertenCounts)
         )
             && (((es
-                    |> List.map .blockers
+                    |> map .blockers
                     |> List.sum
                  )
                     + List.length es
@@ -294,18 +295,44 @@ canKill es model =
     else if
         let
             lifes =
-                es |> List.map .life
+                es |> map .life
         in
-        ((List.sum lifes
-            > totalPower model.attackingCount model.basePower
-         )
-            || (List.length es > (model.attackingCount + 1))
-        )
-            && (lifes
-                    |> List.any (\l -> l <= bonus model.attackingCount)
+        canKillAllOutright es model.attackingCount
+            || (((List.sum lifes
+                    > totalPower model.attackingCount model.basePower
+                 )
+                    || (List.length es > (model.attackingCount + 1))
+                )
+                    && (lifes
+                            |> List.any (\l -> l <= bonus model.attackingCount)
+                       )
                )
     then
         SomeEnemies
 
     else
         NoEnemies
+
+
+canKillAllOutright : List Enemy -> Int -> Bool
+canKillAllOutright es aa =
+    let
+        individualAttackerPower =
+            bonus aa
+    in
+    if aa == 0 then
+        False
+
+    else
+        (es
+            |> foldl
+                (\e left ->
+                    let
+                        afterBlock =
+                            left - e.blockers
+                    in
+                    afterBlock - ceiling (toFloat e.life / toFloat individualAttackerPower)
+                )
+                aa
+        )
+            >= 0
