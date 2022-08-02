@@ -4,7 +4,7 @@ import Browser
 import Html exposing (Attribute, Html, button, div, input, label, table, tbody, td, text, th, thead, tr)
 import Html.Attributes exposing (for, id, pattern, style, type_, value)
 import Html.Events exposing (onClick, onInput)
-import List exposing (foldl, map)
+import List exposing (foldl, map, filter, length)
 
 
 main : Program () Model Msg
@@ -286,7 +286,7 @@ canKill es model =
                     |> map .blockers
                     |> List.sum
                  )
-                    + List.length es
+                    + length es
                 )
                     <= (model.attackingCount + mertenCounts)
                )
